@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กลุ่มบริษัทในเครือ</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #206A37;
+    --accent: #43A047;
+    --light-green: #E8F5E9;
+    --pastel-bg: #F4F7F6;
+    --text-dark: #1E293B;
+    --text-light: #64748B;
+    --white: #ffffff;
+    --shadow: 0 8px 24px rgba(0,0,0,0.05);
+    --shadow-lg: 0 12px 32px rgba(32,106,55,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Kanit', sans-serif; background: #f0f4f2; color: var(--text-dark); min-height: 100vh; }
+
+  /* ========== HOME SCREEN ========== */
+  #home-screen {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #e8f5e9 0%, #ffffff 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  #home-screen .icon-wrap { background: var(--light-green); border-radius: 50%; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  #home-screen .icon-wrap svg { width: 64px; height: 64px; color: #1B5E20; }
+  #home-screen h1 { font-size: 22px; font-weight: 800; color: var(--text-dark); text-align: center; }
+  #home-screen p { font-size: 16px; color: var(--text-light); margin-top: 8px; }
+  #home-screen .btn-enter {
+    margin-top: 40px;
+    background: var(--accent);
+    color: white; border: none; border-radius: 30px;
+    padding: 15px 36px; font-size: 18px; font-family: 'Kanit', sans-serif;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 6px 20px rgba(67,160,71,0.4); transition: transform .15s, box-shadow .15s;
+  }
+  #home-screen .btn-enter:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(67,160,71,0.5); }
+
+  /* ========== COMPANY LIST SCREEN ========== */
+  #company-list-screen { display: none; min-height: 100vh; background: var(--pastel-bg); }
+  .app-bar {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 4px 16px rgba(32,106,55,0.3);
+  }
+  .app-bar .back-btn { background: rgba(255,255,255,0.15); border: none; color: white; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; flex-shrink: 0; }
+  .app-bar .back-btn:hover { background: rgba(255,255,255,0.25); }
+  .app-bar h2 { font-size: 18px; font-weight: 700; }
+  .company-list { padding: 16px; }
+  .company-tile {
+    background: white; border-radius: 16px; padding: 18px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .company-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+  .company-tile span { font-size: 16px; font-weight: 600; }
+  .company-tile svg { color: var(--text-light); width: 22px; height: 22px; }
+
+  /* ========== COCONUT SCREEN ========== */
+  #coconut-screen { display: none; min-height: 100vh; background: var(--pastel-bg); }
+  .coconut-appbar {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; padding: 16px 20px 0;
+    box-shadow: 0 4px 16px rgba(32,106,55,0.3);
+  }
+  .coconut-appbar .top-row { display: flex; align-items: center; gap: 14px; padding-bottom: 14px; }
+  .coconut-appbar h2 { font-size: 17px; font-weight: 800; letter-spacing: 0.3px; flex: 1; text-align: center; }
+  .tab-bar { display: flex; gap: 6px; padding: 0 8px 10px; overflow-x: auto; scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    white-space: nowrap; padding: 7px 18px; border-radius: 30px; border: none;
+    font-family: 'Kanit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer;
+    color: rgba(255,255,255,0.85); background: transparent; transition: all .2s;
+  }
+  .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .tab-content { display: none; padding: 20px; max-width: 700px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* ========== SHARED COMPONENTS ========== */
+  .section-title { font-size: 17px; font-weight: 800; color: var(--text-dark); margin-bottom: 16px; margin-top: 4px; }
+  .card {
+    background: white; border-radius: 20px; padding: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.04); margin-bottom: 16px;
+  }
+  .info-tile { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); margin-bottom: 16px; }
+  .info-tile-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .icon-circle { background: var(--light-green); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon-circle svg { color: var(--primary); width: 22px; height: 22px; }
+  .info-tile-title { font-size: 15px; font-weight: 800; color: var(--text-dark); }
+  .info-tile-body { font-size: 14px; color: var(--text-light); line-height: 1.7; font-weight: 500; padding-left: 4px; }
+
+  /* Finance cards */
+  .profit-card {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 24px; padding: 24px; color: white;
+    box-shadow: 0 10px 28px rgba(67,160,71,0.35); margin-bottom: 16px;
+  }
+  .profit-card .label { font-size: 15px; font-weight: 500; opacity: .9; }
+  .profit-card .amount { font-size: 34px; font-weight: 800; letter-spacing: 1px; margin-top: 12px; }
+  .profit-card .icon-row { display: flex; align-items: center; gap: 12px; }
+  .profit-card .icon-box { background: rgba(255,255,255,.2); border-radius: 12px; padding: 8px; display: flex; }
+  .mini-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .mini-card { background: white; border-radius: 20px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); }
+  .mini-card .mc-label { font-size: 12px; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
+  .mini-card .mc-value { font-size: 17px; font-weight: 800; color: var(--text-dark); margin-top: 10px; }
+  .finance-row-card { background: white; border-radius: 20px; padding: 16px 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .finance-row-card .fc-icon { border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .finance-row-card .fc-label { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-light); }
+  .finance-row-card .fc-value { font-size: 17px; font-weight: 800; color: var(--text-dark); }
+
+  /* Org table */
+  .org-summary { background: white; border-radius: 20px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 20px rgba(32,106,55,0.06); border: 2px solid rgba(32,106,55,0.15); margin-bottom: 20px; }
+  .org-summary .os-label { font-size: 13px; font-weight: 600; color: var(--text-light); }
+  .org-summary .os-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+  .org-summary .os-val { font-size: 22px; font-weight: 700; color: var(--primary); }
+  .table-wrap { overflow-x: auto; border-radius: 20px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
+  thead tr { background: var(--light-green); }
+  th { padding: 14px 16px; text-align: left; font-weight: 700; color: var(--primary); white-space: nowrap; font-size: 13px; }
+  td { padding: 16px; border-bottom: 1px solid #f0f0f0; color: var(--text-dark); }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 600; }
+
+  /* ERP accordion */
+  .erp-item { background: white; border-radius: 20px; margin-bottom: 14px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); overflow: hidden; }
+  .erp-header { padding: 18px 20px; cursor: pointer; display: flex; align-items: center; gap: 14px; }
+  .erp-title { font-size: 14px; font-weight: 800; color: var(--text-dark); flex: 1; }
+  .erp-chevron { color: var(--text-light); transition: transform .2s; }
+  .erp-item.open .erp-chevron { transform: rotate(180deg); }
+  .erp-body { display: none; padding: 0 20px 16px 76px; }
+  .erp-item.open .erp-body { display: block; }
+  .erp-body li { list-style: none; display: flex; gap: 10px; margin-bottom: 8px; font-size: 13px; color: var(--text-light); font-weight: 500; line-height: 1.5; }
+  .erp-body li::before { content: ''; width: 6px; height: 6px; background: var(--primary); border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
+  /* POS */
+  .pos-wrap { display: flex; flex-direction: column; min-height: calc(100vh - 140px); }
+  .pos-list { flex: 1; padding: 20px 20px 120px; max-width: 700px; margin: 0 auto; width: 100%; }
+  .pos-card { background: white; border-radius: 24px; padding: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); margin-bottom: 14px; display: flex; align-items: center; gap: 14px; }
+  .pos-emoji { width: 68px; height: 68px; background: var(--pastel-bg); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 34px; flex-shrink: 0; }
+  .pos-info { flex: 1; }
+  .pos-name { font-size: 15px; font-weight: 800; color: var(--text-dark); }
+  .pos-price { font-size: 15px; font-weight: 800; color: var(--primary); margin-top: 4px; }
+  .stock-badge { display: inline-block; padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; margin-top: 7px; }
+  .stock-low { background: rgba(239,68,68,.1); color: #ef4444; }
+  .stock-ok { background: rgba(249,115,22,.1); color: #f97316; }
+  .stepper { display: flex; align-items: center; gap: 4px; background: var(--pastel-bg); border-radius: 30px; padding: 4px; flex-shrink: 0; }
+  .step-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: opacity .15s; }
+  .step-btn:disabled { opacity: .35; cursor: default; }
+  .step-btn.minus svg { color: #ef4444; }
+  .step-btn.plus svg { color: var(--primary); }
+  .step-qty { width: 30px; text-align: center; font-size: 15px; font-weight: 800; color: var(--text-dark); }
+  .pos-footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: white; border-radius: 28px 28px 0 0; padding: 20px 24px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.08); z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 700px; margin: 0 auto;
+  }
+  .pos-total-label { font-size: 12px; font-weight: 600; color: var(--text-light); }
+  .pos-total-val { font-size: 24px; font-weight: 800; color: var(--text-dark); }
+  .pay-btn { background: var(--primary); color: white; border: none; border-radius: 14px; padding: 14px 28px; font-family: 'Kanit', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: opacity .15s; }
+  .pay-btn:disabled { background: #ccc; cursor: default; }
+  .pay-btn svg { width: 18px; height: 18px; }
+
+  /* CRM */
+  .crm-center { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px; }
+  .crm-icon { background: var(--light-green); border-radius: 50%; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .crm-icon svg { width: 52px; height: 52px; color: var(--primary); }
+  .crm-h { font-size: 22px; font-weight: 700; color: var(--text-dark); }
+  .crm-sub { font-size: 13px; color: var(--text-light); margin-top: 6px; margin-bottom: 28px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; display: block; text-align: left; }
+  .input-wrap { position: relative; }
+  .input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--primary); }
+  input[type=text], input[type=tel], input[type=number], select {
+    width: 100%; padding: 14px 16px 14px 44px; border: none;
+    background: var(--pastel-bg); border-radius: 14px; font-family: 'Kanit', sans-serif;
+    font-size: 15px; font-weight: 500; color: var(--text-dark); outline: none;
+    transition: box-shadow .2s;
+  }
+  input:focus, select:focus { box-shadow: 0 0 0 1.5px var(--primary); }
+  .btn-primary {
+    width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px;
+    font-family: 'Kanit', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 24px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(32,106,55,0.3); transition: transform .15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
+  select { padding-left: 44px; cursor: pointer; -webkit-appearance: none; }
+
+  /* Payroll */
+  .payroll-h { font-size: 21px; font-weight: 800; color: var(--primary); text-align: center; }
+  .payroll-sub { font-size: 13px; color: var(--text-light); text-align: center; margin-top: 6px; margin-bottom: 24px; }
+  .form-group { margin-bottom: 16px; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: white; border-radius: 28px 28px 0 0; padding: 28px 24px 36px; width: 100%; max-width: 480px; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-icon { display: flex; justify-content: center; margin-bottom: 12px; }
+  .modal-icon .ic { background: var(--light-green); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+  .modal-icon svg { width: 32px; height: 32px; color: var(--primary); }
+  .modal-title { text-align: center; font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 16px; }
+  .modal-divider { border: none; border-top: 1px solid #eee; margin: 8px 0 16px; }
+  .slip-row { display: flex; justify-content: space-between; padding: 7px 0; }
+  .slip-row .sl { font-size: 13px; color: var(--text-light); }
+  .slip-row .sr { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+  .slip-row.bold .sr { font-size: 19px; font-weight: 800; color: var(--primary); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 12px 22px; border-radius: 14px; font-size: 14px; font-weight: 600; opacity: 0; transition: all .3s; z-index: 200; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: #ef4444; }
+  .toast.orange { background: #f97316; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+  /* Responsive */
+  @media (min-width: 700px) {
+    .pos-footer { left: 50%; transform: translateX(-50%); right: auto; width: 700px; border-radius: 28px 28px 0 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== HOME SCREEN ========== -->
+<div id="home-screen">
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+    </svg>
+  </div>
+  <h1>ยินดีต้อนรับสู่ระบบบริหารจัดการ</h1>
+  <p>กลุ่มบริษัทในเครือของเรา</p>
+  <button class="btn-enter" onclick="showScreen('company-list-screen')">
+    เข้าชมรายชื่อบริษัท
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </button>
+</div>
+
+<!-- ========== COMPANY LIST SCREEN ========== -->
+<div id="company-list-screen">
+  <div class="app-bar">
+    <button class="back-btn" onclick="showScreen('home-screen')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <h2>รวมบริษัทในเครือ</h2>
+  </div>
+  <div class="company-list">
+    <div class="company-tile" onclick="showScreen('coconut-screen')">
+      <span>บริษัทสวนมะพร้าว</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ========== COCONUT SCREEN ========== -->
+<div id="coconut-screen">
+  <div class="coconut-appbar">
+    <div class="top-row">
+      <button class="back-btn" onclick="showScreen('company-list-screen')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <h2>บริษัทแปรรูปมะพร้าวครบวงจร</h2>
+      <div style="width:38px"></div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('tab-overview', this)">Overview</button>
+      <button class="tab-btn" onclick="switchTab('tab-org', this)">Organization</button>
+      <button class="tab-btn" onclick="switchTab('tab-bm', this)">Business Model</button>
+      <button class="tab-btn" onclick="switchTab('tab-erp', this)">ERP</button>
+      <button class="tab-btn" onclick="switchTab('tab-pos', this)">POS</button>
+      <button class="tab-btn" onclick="switchTab('tab-crm', this)">CRM</button>
+      <button class="tab-btn" onclick="switchTab('tab-payroll', this)">Payroll</button>
+    </div>
+  </div>
+
+  <!-- TAB: OVERVIEW -->
+  <div id="tab-overview" class="tab-content active">
+    <div class="section-title">ลักษณะธุรกิจ</div>
+    <div class="card">
+      <p style="line-height:1.7;font-size:14px;color:var(--text-dark)">ธุรกิจเกษตรกรรมออร์แกนิก เน้นการปลูกและจำหน่าย มะพร้าวออร์แกนิก โดยไม่ใช้สารเคมี ควบคุมกระบวนการผลิตตั้งแต่การปลูก จนถึงการจำหน่าย เพื่อให้ได้สินค้าที่มีคุณภาพและปลอดภัยต่อผู้บริโภค</p>
+    </div>
+
+    <div class="section-title">สินค้าและบริการหลัก</div>
+    <div class="info-tile">
+      <div class="info-tile-header">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+        <div class="info-tile-title">สินค้า (Products)</div>
+      </div>
+      <div class="info-tile-body">• มะพร้าวออร์แกนิกสด (ขายเป็นลูก)<br>• มะพร้าวปอกพร้อมบริโภค<br>• มะพร้าวแปรรูป เช่น น้ำมะพร้าวขวด</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <div class="info-tile-title">บริการ (Services)</div>
+      </div>
+      <div class="info-tile-body">• จำหน่ายให้ตลาดค้าส่งและพ่อค้าคนกลาง<br>• ส่งตรงให้ร้านอาหาร คาเฟ่ และโรงแรม</div>
+    </div>
+
+    <div class="section-title">สรุปรายรับ-รายจ่าย (Monthly)</div>
+    <div class="profit-card">
+      <div class="icon-row">
+        <div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <span class="label">กำไรสุทธิ (Net Profit)</span>
+      </div>
+      <div class="amount" id="net-profit-display">฿536,000</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-card">
+        <div class="mc-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg> รายรับรวม</div>
+        <div class="mc-value" id="revenue-display">฿1,450,000</div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg> ต้นทุนผันแปร</div>
+        <div class="mc-value" style="color:#f97316">฿350,000</div>
+      </div>
+    </div>
+    <div class="finance-row-card">
+      <div class="fc-icon" style="background:rgba(239,68,68,.1)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <span class="fc-label">ต้นทุนคงที่ (เงินเดือนพนักงานรวม)</span>
+      <span class="fc-value">฿564,000</span>
+    </div>
+  </div>
+
+  <!-- TAB: ORGANIZATION -->
+  <div id="tab-org" class="tab-content">
+    <div class="section-title">โครงสร้างองค์กร (รวม 34 คน)</div>
+    <div class="org-summary">
+      <div>
+        <div class="os-label">รวมฐานเงินเดือนทั้งหมด</div>
+        <div class="os-sub">รายจ่ายประจำเดือน</div>
+      </div>
+      <div class="os-val">฿564,000</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ตำแหน่ง</th><th>จำนวน</th><th>เงินเดือน (฿)</th><th>ความรับผิดชอบ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ผู้จัดการฟาร์ม</td><td>1</td><td>45,000</td><td>วางแผนและควบคุมภาพรวม</td></tr>
+          <tr><td>หัวหน้าสวน</td><td>2</td><td>22,000</td><td>ควบคุมแรงงานและพื้นที่</td></tr>
+          <tr><td>พนักงานดูแลสวน</td><td>12</td><td>14,000</td><td>ดูแลต้นมะพร้าว</td></tr>
+          <tr><td>ฝ่ายเก็บเกี่ยว</td><td>6</td><td>16,000</td><td>เก็บและคัดแยกผลผลิต</td></tr>
+          <tr><td>ฝ่ายคัดแยก/บรรจุ</td><td>5</td><td>15,000</td><td>ตรวจคุณภาพและแพ็คสินค้า</td></tr>
+          <tr><td>ฝ่ายคลังสินค้า</td><td>3</td><td>15,000</td><td>ควบคุมสต๊อก</td></tr>
+          <tr><td>ฝ่ายขาย</td><td>3</td><td>17,000</td><td>จัดส่งสินค้า</td></tr>
+          <tr><td>ฝ่ายบัญชี/ธุรการ</td><td>2</td><td>20,000</td><td>ดูแลรายรับรายจ่าย</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: BUSINESS MODEL -->
+  <div id="tab-bm" class="tab-content">
+    <div class="section-title">สวนมะพร้าวออร์แกนิกแบบผสมผสาน</div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="info-tile-title">1. กลุ่มลูกค้า (Customer Segments)</div></div>
+      <div class="info-tile-body">• ผู้บริโภคสายสุขภาพ / ออร์แกนิก<br>• ร้านน้ำมะพร้าวสด / คาเฟ่สุขภาพ<br>• โรงแรม รีสอร์ท และร้านอาหาร<br>• โรงงานแปรรูป และผู้ค้าส่งตลาดกลาง</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="info-tile-title">2. คุณค่าเสนอ (Value Propositions)</div></div>
+      <div class="info-tile-body">• มะพร้าวออร์แกนิก 100% ไม่ใช้สารเคมี<br>• เก็บสดใหม่ ส่งตรงถึงลูกค้า<br>• มีมาตรฐาน GAP / เกษตรอินทรีย์<br>• รองรับออเดอร์จำนวนมาก</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="info-tile-title">3. ความสัมพันธ์กับลูกค้า (Relationships)</div></div>
+      <div class="info-tile-body">• ระบบสั่งจองล่วงหน้า (Pre-order)<br>• บริการจัดส่งประจำรายสัปดาห์<br>• ดูแลลูกค้าแบบ B2B ระยะยาว</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="info-tile-title">4. ช่องทางจัดจำหน่าย (Channels)</div></div>
+      <div class="info-tile-body">• ขายหน้าสวนโดยตรง<br>• Facebook / Line OA<br>• ส่งตลาดค้าส่งและตลาดสด</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="info-tile-title">5. กระแสรายได้ (Revenue Streams)</div></div>
+      <div class="info-tile-body">• มะพร้าวสดทั้งลูก / ปอกพร้อมดื่ม<br>• กะทิสด / น้ำมะพร้าวสด<br>• รายได้จากเศษวัสดุ (กาบ/กะลา)</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div class="info-tile-title">6. พันธมิตรหลัก (Key Partners)</div></div>
+      <div class="info-tile-body">• เกษตรกรเครือข่ายสวนใกล้เคียง<br>• บริษัทขนส่งท้องถิ่น<br>• ร้านค้าอุปกรณ์การเกษตร</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div><div class="info-tile-title">7. กิจกรรมหลัก (Key Activities)</div></div>
+      <div class="info-tile-body">• ปลูกดูแลสวน และเก็บเกี่ยว<br>• บรรจุและจัดส่งสินค้า<br>• วางแผนการผลิตตามฤดูกาล</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="info-tile-title">8. ทรัพยากรหลัก (Key Resources)</div></div>
+      <div class="info-tile-body">• พื้นที่สวน 40 ไร่<br>• ระบบน้ำและเครื่องมือเกษตร<br>• แรงงานประจำและตามฤดูกาล</div>
+    </div>
+    <div class="info-tile">
+      <div class="info-tile-header"><div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="info-tile-title">9. โครงสร้างต้นทุน (Cost Structure)</div></div>
+      <div class="info-tile-body">• ค่าแรงงาน / ปุ๋ยอินทรีย์<br>• ค่าน้ำ / ค่าไฟ / ค่าขนส่ง<br>• ค่าอุปกรณ์และซ่อมบำรุง</div>
+    </div>
+  </div>
+
+  <!-- TAB: ERP -->
+  <div id="tab-erp" class="tab-content">
+    <div class="section-title">ระบบ Enterprise Resource Planning</div>
+    <div class="erp-item" onclick="toggleErp(this)">
+      <div class="erp-header">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <span class="erp-title">1. การจัดการขนส่ง (Transportation)</span>
+        <svg class="erp-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <ul class="erp-body"><li>วางแผนเส้นทางส่งสินค้าแบบอัจฉริยะ</li><li>ติดตามสถานะการขนส่งแบบ Real-time</li></ul>
+    </div>
+    <div class="erp-item" onclick="toggleErp(this)">
+      <div class="erp-header">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <span class="erp-title">2. การเงินและบัญชี (Financial)</span>
+        <svg class="erp-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <ul class="erp-body"><li>บันทึกรายรับ–รายจ่ายจาก POS อัตโนมัติ</li><li>คำนวณต้นทุนต่อผลผลิตแบบละเอียด</li><li>สรุปกำไร-ขาดทุนรายเดือน</li></ul>
+    </div>
+    <div class="erp-item" onclick="toggleErp(this)">
+      <div class="erp-header">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="erp-title">3. บริหารบุคคล (HR & Payroll)</span>
+        <svg class="erp-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <ul class="erp-body"><li>บันทึกเวลาเข้าออกงาน</li><li>คำนวณเงินเดือน ล่วงเวลาอัตโนมัติ</li><li>จัดตารางเวรพนักงาน</li></ul>
+    </div>
+    <div class="erp-item" onclick="toggleErp(this)">
+      <div class="erp-header">
+        <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <span class="erp-title">4. วิเคราะห์ข้อมูล (BI Dashboard)</span>
+        <svg class="erp-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <ul class="erp-body"><li>สรุปยอดขายรายวัน / เดือน</li><li>วิเคราะห์ต้นทุนเชิงลึก</li><li>ระบบคาดการณ์ผลผลิตล่วงหน้า</li></ul>
+    </div>
+  </div>
+
+  <!-- TAB: POS -->
+  <div id="tab-pos" class="tab-content" style="padding:0">
+    <div class="pos-list" id="pos-list"></div>
+    <div class="pos-footer">
+      <div>
+        <div class="pos-total-label">ราคารวมทั้งหมด</div>
+        <div class="pos-total-val" id="cart-total">฿0</div>
+      </div>
+      <button class="pay-btn" id="pay-btn" disabled onclick="checkout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        ชำระเงิน
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB: CRM -->
+  <div id="tab-crm" class="tab-content">
+    <div class="crm-center">
+      <div class="crm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+      <div class="crm-h">สมัครสมาชิกใหม่</div>
+      <div class="crm-sub">สะสมแต้มและรับสิทธิพิเศษสำหรับลูกค้าประจำ</div>
+    </div>
+    <div class="card">
+      <label class="form-label">เบอร์โทรศัพท์</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        <input type="tel" id="crm-phone" placeholder="08X-XXX-XXXX" maxlength="10" style="letter-spacing:2px">
+      </div>
+      <button class="btn-primary" onclick="registerCRM()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        ลงทะเบียนสมาชิก
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB: PAYROLL -->
+  <div id="tab-payroll" class="tab-content">
+    <div class="payroll-h">ระบบคำนวณเงินเดือนพนักงาน</div>
+    <div class="payroll-sub">จัดการข้อมูลและออกสลิปเงินเดือนให้พนักงานรายบุคคล</div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">ชื่อพนักงาน</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="emp-name" placeholder="เช่น นายสมชาย ใจดี">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ฝ่ายงาน</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          <select id="dept-select">
+            <option value="45000">ผู้จัดการฟาร์ม</option>
+            <option value="22000">หัวหน้าสวน</option>
+            <option value="14000">พนักงานดูแลสวน</option>
+            <option value="16000">ฝ่ายเก็บเกี่ยว</option>
+            <option value="15000">ฝ่ายคัดแยก/บรรจุ</option>
+            <option value="15000">ฝ่ายคลังสินค้า</option>
+            <option value="17000">ฝ่ายขาย</option>
+            <option value="20000">ฝ่ายบัญชี/ธุรการ</option>
+            <option value="15000" selected>ฝ่ายผลิต</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">OT (ชม.ละ 100 บาท)</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <input type="number" id="ot-hours" placeholder="จำนวนชั่วโมง" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">โบนัสพิเศษ (บาท)</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          <input type="number" id="bonus" placeholder="ระบุจำนวนเงิน" min="0">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="generateSlip()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        ออกสลิปเงินเดือน
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SLIP MODAL -->
+<div class="modal-overlay" id="slip-modal">
+  <div class="modal-box">
+    <div class="modal-icon"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    <div class="modal-title">สลิปเงินเดือน</div>
+    <hr class="modal-divider">
+    <div id="slip-content"></div>
+    <hr class="modal-divider">
+    <div id="slip-total"></div>
+    <button class="btn-primary" onclick="closeModal()" style="margin-top:16px">ปิดและพิมพ์สลิป</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== STATE ==========
+let totalRevenue = 1450000;
+const variableCosts = 350000;
+const basePayroll = 564000;
+
+const posItems = [
+  { name: "มะพร้าวน้ำหอม", price: 20, stock: 520, qty: 0, emoji: "🥥" },
+  { name: "มะพร้าวปอก", price: 25, stock: 85, qty: 0, emoji: "🔪" },
+  { name: "มะพร้าวกะทิ", price: 25, stock: 1200, qty: 0, emoji: "🌴" },
+  { name: "มะพร้าวไซส์ขนาดเล็ก", price: 20, stock: 2100, qty: 0, emoji: "🟢" },
+  { name: "มะพร้าวไซส์ขนาดใหญ่", price: 30, stock: 45, qty: 0, emoji: "🟢" },
+];
+
+// ========== NAV ==========
+function showScreen(id) {
+  ['home-screen', 'company-list-screen', 'coconut-screen'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? (s === 'home-screen' ? 'flex' : 'block') : 'none';
+  });
+  if (id === 'coconut-screen') renderPOS();
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ========== HELPERS ==========
+function fmt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+// ========== POS ==========
+function renderPOS() {
+  const list = document.getElementById('pos-list');
+  list.innerHTML = posItems.map((item, i) => {
+    const low = item.stock < 100;
+    return `
+    <div class="pos-card">
+      <div class="pos-emoji">${item.emoji}</div>
+      <div class="pos-info">
+        <div class="pos-name">${item.name}</div>
+        <div class="pos-price">฿${item.price}</div>
+        <span class="stock-badge ${low ? 'stock-low' : 'stock-ok'}">คงเหลือ: ${item.stock}</span>
+      </div>
+      <div class="stepper">
+        <button class="step-btn minus" onclick="changeQty(${i}, -1)" ${item.qty <= 0 ? 'disabled' : ''}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <span class="step-qty">${item.qty}</span>
+        <button class="step-btn plus" onclick="changeQty(${i}, 1)" ${item.stock <= 0 ? 'disabled' : ''}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  updateCartTotal();
+}
+
+function changeQty(i, delta) {
+  const item = posItems[i];
+  if (delta > 0 && item.stock <= 0) return;
+  if (delta < 0 && item.qty <= 0) return;
+  item.qty += delta;
+  item.stock -= delta;
+  renderPOS();
+}
+
+function updateCartTotal() {
+  const total = posItems.reduce((s, it) => s + it.price * it.qty, 0);
+  document.getElementById('cart-total').textContent = '฿' + fmt(total);
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = total === 0;
+}
+
+function checkout() {
+  const total = posItems.reduce((s, it) => s + it.price * it.qty, 0);
+  if (!total) return;
+  totalRevenue += total;
+  posItems.forEach(it => { it.qty = 0; });
+  renderPOS();
+  updateFinanceDisplay();
+  showToast('✅ ทำรายการชำระเงินสำเร็จ รายได้ถูกบันทึกแล้ว!');
+}
+
+function updateFinanceDisplay() {
+  const net = totalRevenue - variableCosts - basePayroll;
+  document.getElementById('net-profit-display').textContent = '฿' + fmt(net);
+  document.getElementById('revenue-display').textContent = '฿' + fmt(totalRevenue);
+}
+
+// ========== CRM ==========
+function registerCRM() {
+  const phone = document.getElementById('crm-phone').value.trim();
+  if (phone.length < 9) { showToast('⚠️ กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง', 'orange'); return; }
+  showToast('🎉 ลงทะเบียนเบอร์ ' + phone + ' สำเร็จ!');
+  document.getElementById('crm-phone').value = '';
+}
+
+// ========== PAYROLL ==========
+const deptNames = {
+  '45000': 'ผู้จัดการฟาร์ม', '22000': 'หัวหน้าสวน', '14000': 'พนักงานดูแลสวน',
+  '16000': 'ฝ่ายเก็บเกี่ยว', '15000': 'ฝ่ายผลิต/คัดแยก/คลัง', '17000': 'ฝ่ายขาย', '20000': 'ฝ่ายบัญชี/ธุรการ'
+};
+
+function generateSlip() {
+  const name = document.getElementById('emp-name').value.trim();
+  if (!name) { showToast('⚠️ กรุณากรอกชื่อพนักงาน', 'error'); return; }
+  const deptEl = document.getElementById('dept-select');
+  const base = parseInt(deptEl.value);
+  const deptName = deptEl.options[deptEl.selectedIndex].text;
+  const ot = parseInt(document.getElementById('ot-hours').value) || 0;
+  const bonus = parseInt(document.getElementById('bonus').value) || 0;
+  const otTotal = ot * 100;
+  const net = base + otTotal + bonus;
+
+  document.getElementById('slip-content').innerHTML = `
+    <div class="slip-row"><span class="sl">ชื่อพนักงาน:</span><span class="sr">${name}</span></div>
+    <div class="slip-row"><span class="sl">ฝ่ายงาน:</span><span class="sr">${deptName}</span></div>
+    <div style="height:8px"></div>
+    <div class="slip-row"><span class="sl">เงินเดือนพื้นฐาน:</span><span class="sr">฿${fmt(base)}</span></div>
+    <div class="slip-row"><span class="sl">ค่าล่วงเวลา (OT):</span><span class="sr">฿${fmt(otTotal)}</span></div>
+    <div class="slip-row"><span class="sl">โบนัส:</span><span class="sr">฿${fmt(bonus)}</span></div>
+  `;
+  document.getElementById('slip-total').innerHTML = `
+    <div class="slip-row bold"><span class="sl">รายรับสุทธิ:</span><span class="sr">฿${fmt(net)}</span></div>
+  `;
+  document.getElementById('slip-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('slip-modal').classList.remove('show');
+  document.getElementById('emp-name').value = '';
+  document.getElementById('ot-hours').value = '';
+  document.getElementById('bonus').value = '';
+  document.getElementById('dept-select').value = '15000';
+}
+
+// ========== ERP ==========
+function toggleErp(el) { el.classList.toggle('open'); }
+
+// Init
+renderPOS();
+</script>
+</body>
+</html>
